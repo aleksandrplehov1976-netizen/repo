@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>АИАС АВЕРС - Учитель</title>
+    <title>АИАС АВЕРС - Учитель (Плехов Лев)</title>
     <style>
         * {
             margin: 0;
@@ -55,6 +55,12 @@
         .grid-2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
             gap: 10px;
         }
 
@@ -113,27 +119,38 @@
         .grade-3 { color: #960; }
         .grade-2 { color: #c00; }
 
-        .modal {
+        /* Модальное окно */
+        .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.7);
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 200;
+            z-index: 1000;
         }
 
-        .modal-content {
+        .modal-window {
             background: white;
             border: 2px solid #000;
             max-width: 400px;
             width: 90%;
-            padding: 16px;
-            max-height: 80vh;
-            overflow-y: auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .modal-window h3 {
+            margin-bottom: 16px;
+        }
+
+        .modal-window p {
+            margin-bottom: 16px;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
         }
 
         .hidden {
@@ -143,6 +160,7 @@
         .mt-2 { margin-top: 8px; }
         .mb-2 { margin-bottom: 8px; }
         .text-center { text-align: center; }
+        
         .tab {
             display: inline-block;
             padding: 8px 16px;
@@ -151,13 +169,22 @@
             background: #ddd;
             border: 1px solid #aaa;
         }
+        
         .tab.active {
             background: #000;
             color: white;
             border-color: #000;
         }
+        
         .tabs {
             margin-bottom: 16px;
+        }
+
+        .student-info {
+            background: #e8e8e8;
+            padding: 10px;
+            margin-bottom: 16px;
+            border: 1px solid #aaa;
         }
     </style>
 </head>
@@ -182,23 +209,46 @@
             </div>
         </div>
 
+        <div class="student-info">
+            <strong>🎯 Текущий ученик:</strong> Плехов Лев (plehov9e@dom-28.ru)<br>
+            <span style="font-size:12px;">Все операции выполняются только для этого ученика</span>
+        </div>
+
         <div class="tabs">
-            <span class="tab" data-tab="students">👨‍🎓 Ученики</span>
-            <span class="tab" data-tab="schedule">📅 Расписание</span>
             <span class="tab" data-tab="grades">⭐ Оценки</span>
+            <span class="tab" data-tab="subjects">📚 Предметы</span>
+            <span class="tab" data-tab="schedule">📅 Расписание</span>
             <span class="tab" data-tab="canteen">🍽️ Столовая</span>
             <span class="tab" data-tab="messages">💬 Сообщения</span>
         </div>
 
-        <!-- Ученики -->
-        <div id="tabStudents" class="tab-content">
+        <!-- Оценки -->
+        <div id="tabGrades" class="tab-content">
             <div class="card">
-                <div class="card-header">📚 Класс</div>
-                <select id="classSelect" onchange="changeClass()"></select>
+                <div class="card-header">⭐ Оценки Плехова Льва</div>
+                <div id="gradesList"></div>
+                <div class="card">
+                    <div class="card-header">➕ Новая оценка</div>
+                    <select id="subjectSelect"></select>
+                    <input type="number" id="newGrade" placeholder="Оценка (1-5)" min="1" max="5">
+                    <input type="date" id="newGradeDate">
+                    <input type="text" id="newGradeComment" placeholder="Комментарий">
+                    <button id="setGradeBtn" class="btn-primary">Выставить</button>
+                </div>
             </div>
+        </div>
+
+        <!-- Предметы (отдельное управление) -->
+        <div id="tabSubjects" class="tab-content hidden">
             <div class="card">
-                <div class="card-header">👨‍🎓 Ученики класса</div>
-                <div id="studentsList"></div>
+                <div class="card-header">📚 Список предметов</div>
+                <div id="subjectsList"></div>
+                <div class="card">
+                    <div class="card-header">➕ Добавить предмет</div>
+                    <input type="text" id="newSubjectName" placeholder="Название предмета">
+                    <input type="color" id="newSubjectColor" value="#888888">
+                    <button id="addSubjectBtn" class="btn-primary">Добавить предмет</button>
+                </div>
             </div>
         </div>
 
@@ -206,10 +256,8 @@
         <div id="tabSchedule" class="tab-content hidden">
             <div class="card">
                 <div class="card-header">📅 Расписание уроков</div>
-                <select id="scheduleClassSelect" onchange="changeScheduleClass()"></select>
                 <div id="scheduleList"></div>
                 <button id="addScheduleBtn" class="btn">➕ Добавить урок</button>
-                <button id="copyScheduleBtn" class="btn">📋 Копировать из другого класса</button>
             </div>
             <div class="card">
                 <div class="card-header">📝 Темы и Д/З</div>
@@ -220,26 +268,6 @@
                 <div class="card-header">⏰ Перемены</div>
                 <div id="breaksList"></div>
                 <button id="addBreakBtn" class="btn">➕ Добавить перемену</button>
-            </div>
-        </div>
-
-        <!-- Оценки -->
-        <div id="tabGrades" class="tab-content hidden">
-            <div class="card">
-                <div class="card-header">⭐ Управление оценками</div>
-                <select id="gradesClassSelect" onchange="changeGradesClass()"></select>
-                <select id="studentSelect" onchange="selectStudent()">
-                    <option value="">-- Выберите ученика --</option>
-                </select>
-                <div id="gradesList"></div>
-                <div class="card">
-                    <div class="card-header">➕ Новая оценка</div>
-                    <select id="subjectSelect"></select>
-                    <input type="number" id="newGrade" placeholder="Оценка (1-5)" min="1" max="5">
-                    <input type="date" id="newGradeDate">
-                    <input type="text" id="newGradeComment" placeholder="Комментарий">
-                    <button id="setGradeBtn" class="btn-primary">Выставить</button>
-                </div>
             </div>
         </div>
 
@@ -264,23 +292,17 @@
                 </div>
             </div>
             <div class="card">
-                <div class="card-header">📋 Заказы учеников</div>
+                <div class="card-header">📋 Заказы Плехова Льва</div>
                 <div id="ordersList"></div>
+                <button id="placeOrderBtn" class="btn">🛒 Сделать заказ</button>
             </div>
         </div>
 
         <!-- Сообщения -->
         <div id="tabMessages" class="tab-content hidden">
             <div class="card">
-                <div class="card-header">💬 Диалоги с учениками</div>
-                <div id="dialogsList"></div>
-            </div>
-            <div id="chatBox" class="card hidden">
-                <div class="flex">
-                    <div class="card-header">💬 <span id="chatWith"></span></div>
-                    <button id="closeChatBtn" class="btn-small">Закрыть</button>
-                </div>
-                <div id="chatMessages" style="max-height: 300px; overflow-y: auto; margin-bottom: 10px;"></div>
+                <div class="card-header">💬 Переписка с Плеховым Львом</div>
+                <div id="chatMessages" style="max-height: 400px; overflow-y: auto; margin-bottom: 10px;"></div>
                 <textarea id="newMessageBody" rows="2" placeholder="Сообщение..."></textarea>
                 <button id="sendMessageBtn" class="btn-primary">Отправить</button>
             </div>
@@ -288,18 +310,62 @@
     </div>
 </div>
 
+<!-- Модальное окно для операций -->
+<div id="operationModal" class="modal-overlay hidden">
+    <div class="modal-window">
+        <h3 id="modalTitle">⏳ Выполнение операции</h3>
+        <p id="modalMessage">Пожалуйста, подождите...</p>
+        <div id="modalDetails" style="font-size:11px; color:#666;"></div>
+        <button id="modalCloseBtn" class="btn hidden">Закрыть</button>
+    </div>
+</div>
+
 <script>
     const API_URL = '/api/gas';
+    
+    // Фиксированные данные для Плехова Льва
+    const STUDENT_ID = 'stud2'; // ID Плехова Льва из init
+    const STUDENT_NAME = 'Плехов Лев';
+    const STUDENT_EMAIL = 'plehov9e@dom-28.ru';
     
     let token = null;
     let userRole = null;
     let userId = null;
     let currentClassId = null;
-    let currentStudentId = null;
-    let currentChatUserId = null;
-    let allClasses = [];
-    let allStudents = [];
     let allSubjects = [];
+
+    // Модальное окно
+    function showModal(title, message, details = '', isError = false, autoClose = true) {
+        const modal = document.getElementById('operationModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalDetails = document.getElementById('modalDetails');
+        const closeBtn = document.getElementById('modalCloseBtn');
+        
+        modalTitle.innerText = title;
+        modalMessage.innerText = message;
+        modalDetails.innerText = details;
+        modalTitle.style.color = isError ? '#c00' : '#000';
+        
+        modal.classList.remove('hidden');
+        
+        if (autoClose && !isError) {
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 3000);
+        }
+        
+        if (isError) {
+            closeBtn.classList.remove('hidden');
+            closeBtn.onclick = () => modal.classList.add('hidden');
+        } else {
+            closeBtn.classList.add('hidden');
+        }
+    }
+
+    function hideModal() {
+        document.getElementById('operationModal').classList.add('hidden');
+    }
 
     async function callApi(fn, args = []) {
         const params = new URLSearchParams();
@@ -314,119 +380,153 @@
         return callApi(fn, [token, ...extraArgs]);
     }
 
+    async function withLoading(operationName, callback) {
+        showModal('⏳ Выполнение операции', `Ожидание: ${operationName}`, 'Пожалуйста, подождите...', false, false);
+        try {
+            const result = await callback();
+            if (result && result.success === false) {
+                throw new Error(result.error || 'Неизвестная ошибка');
+            }
+            showModal('✅ Успешно', `${operationName} выполнено успешно`, '', false, true);
+            return result;
+        } catch (err) {
+            showModal('❌ Ошибка', `Ошибка при выполнении: ${operationName}`, `Детали: ${err.message}\n\nСкопируйте этот текст для отладки`, true, false);
+            throw err;
+        }
+    }
+
     async function login() {
         const loginVal = document.getElementById('loginEmail').value;
         const passVal = document.getElementById('loginPassword').value;
-        const res = await callApi('login', [loginVal, passVal]);
-        if (res.success) {
+        
+        await withLoading('Авторизация', async () => {
+            const res = await callApi('login', [loginVal, passVal]);
+            if (!res.success) throw new Error(res.error);
             token = res.token;
             userRole = res.role;
             userId = res.userId;
-            document.getElementById('loginPage').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'block';
-            document.getElementById('userName').innerText = res.name;
-            document.getElementById('userRole').innerText = res.role === 'teacher' ? 'Учитель' : 'Директор';
-            await loadClasses();
-            showTab('students');
-        } else {
-            document.getElementById('loginError').innerText = res.error;
-        }
+            return res;
+        });
+        
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+        document.getElementById('userName').innerText = 'Учитель';
+        document.getElementById('userRole').innerText = 'Учитель';
+        
+        await loadAllData();
+        showTab('grades');
     }
 
-    async function loadClasses() {
-        const res = await callApiAuth('getAllClasses', []);
-        if (res.success) {
-            allClasses = res.data;
-            if (allClasses.length > 0) {
-                currentClassId = allClasses[0].id;
-                renderClassSelectors();
-                await loadStudents();
+    async function loadAllData() {
+        await loadSubjects();
+        await loadStudentGrades();
+        await loadSchedule();
+        await loadBreaks();
+        await loadMenu();
+        await loadStudentOrders();
+        await loadMessages();
+        await loadLessonsByDate();
+    }
+
+    async function loadSubjects() {
+        await withLoading('Загрузка предметов', async () => {
+            const classesRes = await callApiAuth('getAllClasses', []);
+            if (classesRes.success && classesRes.data.length > 0) {
+                currentClassId = classesRes.data[0].id;
+                const subjRes = await callApiAuth('getSubjects', [currentClassId]);
+                if (subjRes.success) {
+                    allSubjects = subjRes.data;
+                    renderSubjectsList();
+                    renderSubjectSelect();
+                }
             }
-        }
+            return true;
+        });
     }
 
-    function renderClassSelectors() {
-        const options = allClasses.map(c => `<option ${currentClassId === c.id ? 'selected' : ''} value="${c.id}">${c.name}</option>`).join('');
-        document.getElementById('classSelect').innerHTML = options;
-        document.getElementById('scheduleClassSelect').innerHTML = options;
-        document.getElementById('gradesClassSelect').innerHTML = options;
-    }
-
-    async function loadStudents() {
-        if (!currentClassId) return;
-        const res = await callApiAuth('getClassStudents', [currentClassId]);
-        if (res.success) {
-            allStudents = res.data;
-            const container = document.getElementById('studentsList');
-            container.innerHTML = allStudents.map(s => `
-                <div class="list-item flex">
-                    <div>
-                        <strong>${s.name}</strong><br>
-                        <span style="font-size:12px;">${s.email || ''}</span>
-                    </div>
-                    <div>
-                        <button class="btn-small" onclick="openStudentChat('${s.id}', '${s.name}')">💬</button>
-                    </div>
+    function renderSubjectsList() {
+        const container = document.getElementById('subjectsList');
+        if (!container) return;
+        
+        container.innerHTML = allSubjects.map(s => `
+            <div class="list-item flex">
+                <div>
+                    <span style="display:inline-block; width:20px; height:20px; background:${s.color || '#888'}; margin-right:8px;"></span>
+                    <strong>${s.name}</strong>
+                    <br><small style="color:#666;">ID: ${s.id}</small>
                 </div>
-            `).join('');
-            
-            const studentSelect = document.getElementById('studentSelect');
-            studentSelect.innerHTML = '<option value="">-- Выберите ученика --</option>' + allStudents.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+                <div>
+                    <button class="btn-small" onclick="editSubject('${s.id}', '${s.name}', '${s.color || '#888888'}')">✏️</button>
+                    <button class="btn-small btn-danger" onclick="deleteSubjectItem('${s.id}')">🗑️</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderSubjectSelect() {
+        const select = document.getElementById('subjectSelect');
+        if (select) {
+            select.innerHTML = allSubjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
         }
     }
 
-    async function loadSchedule() {
-        if (!currentClassId) return;
-        const res = await callApiAuth('getSchedule', [currentClassId]);
-        if (res.success) {
-            const days = {1:'ПН',2:'ВТ',3:'СР',4:'ЧТ',5:'ПТ',6:'СБ'};
-            const byDay = {};
-            res.data.forEach(s => {
-                if (!byDay[s.dayOfWeek]) byDay[s.dayOfWeek] = [];
-                byDay[s.dayOfWeek].push(s);
+    async function addSubject() {
+        const name = document.getElementById('newSubjectName').value;
+        const color = document.getElementById('newSubjectColor').value;
+        
+        if (!name) {
+            alert('Введите название предмета');
+            return;
+        }
+        
+        await withLoading('Добавление предмета', async () => {
+            const res = await callApiAuth('addSubject', [currentClassId, name, color, userId]);
+            if (!res.success) throw new Error(res.error);
+            return res;
+        });
+        
+        document.getElementById('newSubjectName').value = '';
+        await loadSubjects();
+    }
+
+    async function editSubject(id, oldName, oldColor) {
+        const newName = prompt('Новое название предмета:', oldName);
+        const newColor = prompt('Новый цвет (HEX):', oldColor);
+        
+        if (newName) {
+            await withLoading('Изменение предмета', async () => {
+                const res = await callApiAuth('updateSubject', [id, { name: newName, color: newColor || '#888888' }]);
+                if (!res.success) throw new Error(res.error);
+                return res;
             });
-            const container = document.getElementById('scheduleList');
-            container.innerHTML = Object.entries(byDay).sort().map(([day, lessons]) => `
-                <div class="card" style="margin-bottom:8px; padding:10px;">
-                    <div class="card-header" style="margin-bottom:4px;">${days[day] || day}</div>
-                    ${lessons.sort((a,b)=>+a.lessonNumber - +b.lessonNumber).map(l => `
-                        <div class="list-item flex">
-                            <div><strong>${l.lessonNumber}</strong> ${l.subjectName}<br><small>${l.startTime}-${l.endTime} | ${l.room}</small></div>
-                            <button class="btn-small btn-danger" onclick="deleteScheduleItem('${l.id}')">🗑️</button>
-                        </div>
-                    `).join('')}
-                </div>
-            `).join('');
+            await loadSubjects();
         }
     }
 
-    async function loadSubjectsForClass() {
-        if (!currentClassId) return;
-        const res = await callApiAuth('getSubjects', [currentClassId]);
-        if (res.success) {
-            allSubjects = res.data;
-            const subjectSelect = document.getElementById('subjectSelect');
-            subjectSelect.innerHTML = allSubjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-        }
-    }
-
-    async function selectStudent() {
-        const select = document.getElementById('studentSelect');
-        currentStudentId = select.value;
-        if (currentStudentId) {
-            await loadStudentGrades();
-        }
+    async function deleteSubjectItem(id) {
+        if (!confirm('Удалить предмет? Все связанные оценки и уроки будут удалены!')) return;
+        
+        await withLoading('Удаление предмета', async () => {
+            const res = await callApiAuth('deleteSubject', [id]);
+            if (!res.success) throw new Error(res.error);
+            return res;
+        });
+        await loadSubjects();
+        await loadStudentGrades();
+        await loadSchedule();
     }
 
     async function loadStudentGrades() {
-        if (!currentStudentId) return;
-        const res = await callApiAuth('getStudentGrades', [currentStudentId]);
-        if (res.success) {
+        await withLoading('Загрузка оценок', async () => {
+            const res = await callApiAuth('getStudentGrades', [STUDENT_ID]);
+            if (!res.success) throw new Error(res.error);
+            
             const grouped = {};
             res.data.forEach(g => {
                 if (!grouped[g.subjectName]) grouped[g.subjectName] = [];
                 grouped[g.subjectName].push(g);
             });
+            
             const container = document.getElementById('gradesList');
             container.innerHTML = Object.entries(grouped).map(([subject, grades]) => `
                 <div class="card" style="margin-bottom:8px;">
@@ -445,27 +545,120 @@
                     `).join('')}
                 </div>
             `).join('');
-            await loadSubjectsForClass();
-        }
+            return res;
+        });
     }
 
     async function setGrade() {
-        if (!currentStudentId) { alert('Выберите ученика'); return; }
         const subjectId = document.getElementById('subjectSelect').value;
         if (!subjectId) { alert('Выберите предмет'); return; }
+        
         const grade = document.getElementById('newGrade').value;
         const date = document.getElementById('newGradeDate').value || new Date().toISOString().split('T')[0];
         const comment = document.getElementById('newGradeComment').value;
+        
         if (!grade || grade < 1 || grade > 5) { alert('Оценка от 1 до 5'); return; }
-        await callApiAuth('setGrade', [currentStudentId, subjectId, grade, date, comment]);
-        await loadStudentGrades();
+        
+        await withLoading('Выставление оценки', async () => {
+            const res = await callApiAuth('setGrade', [STUDENT_ID, subjectId, grade, date, comment]);
+            if (!res.success) throw new Error(res.error);
+            return res;
+        });
+        
         document.getElementById('newGrade').value = '';
         document.getElementById('newGradeComment').value = '';
+        await loadStudentGrades();
+    }
+
+    async function editGradeItem(id, grade, comment) {
+        const newGrade = prompt('Оценка (1-5):', grade);
+        const newComment = prompt('Комментарий:', comment);
+        
+        if (newGrade) {
+            await withLoading('Изменение оценки', async () => {
+                const res = await callApiAuth('updateGrade', [id, newGrade, newComment]);
+                if (!res.success) throw new Error(res.error);
+                return res;
+            });
+            await loadStudentGrades();
+        }
+    }
+
+    async function deleteGradeItem(id) {
+        if (!confirm('Удалить оценку?')) return;
+        
+        await withLoading('Удаление оценки', async () => {
+            const res = await callApiAuth('deleteGrade', [id]);
+            if (!res.success) throw new Error(res.error);
+            return res;
+        });
+        await loadStudentGrades();
+    }
+
+    async function loadSchedule() {
+        if (!currentClassId) return;
+        
+        await withLoading('Загрузка расписания', async () => {
+            const res = await callApiAuth('getSchedule', [currentClassId]);
+            if (!res.success) throw new Error(res.error);
+            
+            const days = {1:'ПН',2:'ВТ',3:'СР',4:'ЧТ',5:'ПТ',6:'СБ'};
+            const byDay = {};
+            res.data.forEach(s => {
+                if (!byDay[s.dayOfWeek]) byDay[s.dayOfWeek] = [];
+                byDay[s.dayOfWeek].push(s);
+            });
+            
+            const container = document.getElementById('scheduleList');
+            container.innerHTML = Object.entries(byDay).sort().map(([day, lessons]) => `
+                <div class="card" style="margin-bottom:8px; padding:10px;">
+                    <div class="card-header" style="margin-bottom:4px;">${days[day] || day}</div>
+                    ${lessons.sort((a,b)=>+a.lessonNumber - +b.lessonNumber).map(l => `
+                        <div class="list-item flex">
+                            <div><strong>${l.lessonNumber}</strong> ${l.subjectName}<br><small>${l.startTime}-${l.endTime} | ${l.room}</small></div>
+                            <button class="btn-small btn-danger" onclick="deleteScheduleItem('${l.id}')">🗑️</button>
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('');
+            return res;
+        });
+    }
+
+    async function addSchedule() {
+        const day = prompt('День (1-ПН,2-ВТ,3-СР,4-ЧТ,5-ПТ):');
+        const lessonNum = prompt('Номер урока:');
+        const subjectId = prompt('ID предмета (посмотрите в разделе Предметы):');
+        const room = prompt('Кабинет:');
+        const start = prompt('Начало (08:30):');
+        const end = prompt('Конец (09:15):');
+        
+        if (!day || !lessonNum || !subjectId) return;
+        
+        await withLoading('Добавление урока', async () => {
+            const res = await callApiAuth('setSchedule', [currentClassId, day, lessonNum, subjectId, room, start, end]);
+            if (!res.success) throw new Error(res.error);
+            return res;
+        });
+        await loadSchedule();
+    }
+
+    async function deleteScheduleItem(id) {
+        if (!confirm('Удалить урок?')) return;
+        
+        await withLoading('Удаление урока', async () => {
+            const res = await callApiAuth('deleteSchedule', [id]);
+            if (!res.success) throw new Error(res.error);
+            return res;
+        });
+        await loadSchedule();
     }
 
     async function loadBreaks() {
-        const res = await callApiAuth('getBreaks', []);
-        if (res.success) {
+        await withLoading('Загрузка перемен', async () => {
+            const res = await callApiAuth('getBreaks', []);
+            if (!res.success) throw new Error(res.error);
+            
             const container = document.getElementById('breaksList');
             container.innerHTML = res.data.map(b => `
                 <div class="list-item flex">
@@ -476,13 +669,85 @@
                     </div>
                 </div>
             `).join('');
-        }
+            return res;
+        });
+    }
+
+    async function addBreak() {
+        const after = prompt('После какого урока:');
+        const duration = prompt('Длительность (мин):');
+        const name = prompt('Название:');
+        
+        await withLoading('Добавление перемены', async () => {
+            const res = await callApiAuth('setBreak', [after, duration, name]);
+            if (!res.success) throw new Error(res.error);
+            return res;
+        });
+        await loadBreaks();
+    }
+
+    async function editBreakItem(id, duration, name) {
+        const newDuration = prompt('Длительность (мин):', duration);
+        const newName = prompt('Название:', name);
+        
+        await withLoading('Изменение перемены', async () => {
+            const res = await callApiAuth('updateBreak', [id, newDuration, newName]);
+            if (!res.success) throw new Error(res.error);
+            return res;
+        });
+        await loadBreaks();
+    }
+
+    async function deleteBreakItem(id) {
+        await withLoading('Удаление перемены', async () => {
+            const res = await callApiAuth('deleteBreak', [id]);
+            if (!res.success) throw new Error(res.error);
+            return res;
+        });
+        await loadBreaks();
+    }
+
+    async function loadLessonsByDate() {
+        const date = document.getElementById('lessonDate').value || new Date().toISOString().split('T')[0];
+        
+        await withLoading('Загрузка тем и Д/З', async () => {
+            const res = await callApiAuth('getLessonsByDate', [currentClassId, date]);
+            if (!res.success) throw new Error(res.error);
+            
+            const container = document.getElementById('lessonsList');
+            container.innerHTML = res.data.map(l => `
+                <div class="list-item">
+                    <div class="flex">
+                        <span><strong>${l.lessonNumber}</strong> ${l.subjectName}</span>
+                        <button class="btn-small" onclick="editLessonItem('${l.scheduleId}', '${date}', '${l.topic}', '${l.homework}')">✏️</button>
+                    </div>
+                    <div>📖 Тема: ${l.topic || '-'}</div>
+                    <div>📝 Д/З: ${l.homework || '-'}</div>
+                </div>
+            `).join('');
+            return res;
+        });
+    }
+
+    async function editLessonItem(scheduleId, date, topic, homework) {
+        const newTopic = prompt('Тема:', topic);
+        const newHomework = prompt('Домашнее задание:', homework);
+        
+        await withLoading('Сохранение темы и Д/З', async () => {
+            const res = await callApiAuth('setLesson', [scheduleId, date, newTopic, newHomework]);
+            if (!res.success) throw new Error(res.error);
+            return res;
+        });
+        await loadLessonsByDate();
     }
 
     async function loadMenu() {
         const date = document.getElementById('menuDate').value || new Date().toISOString().split('T')[0];
-        const res = await callApiAuth('getMenuByDate', [date]);
-        if (res.success) {
+        
+        await withLoading('Загрузка меню', async () => {
+            const res = await callApiAuth('getMenuByDate', [date]);
+            if (!res.success) throw new Error(res.error);
+            
             const container = document.getElementById('menuList');
             container.innerHTML = res.data.map(m => `
                 <div class="list-item">
@@ -498,158 +763,8 @@
                     </div>
                 </div>
             `).join('');
-        }
-    }
-
-    async function loadOrders() {
-        const res = await callApiAuth('getOrders', []);
-        if (res.success) {
-            const container = document.getElementById('ordersList');
-            container.innerHTML = res.data.map(o => `
-                <div class="list-item">
-                    <div class="flex">
-                        <strong>${o.userName}</strong>
-                        <select onchange="updateOrderStatus('${o.id}', this.value)">
-                            <option ${o.status === 'pending' ? 'selected' : ''}>pending</option>
-                            <option ${o.status === 'confirmed' ? 'selected' : ''}>confirmed</option>
-                            <option ${o.status === 'ready' ? 'selected' : ''}>ready</option>
-                            <option ${o.status === 'completed' ? 'selected' : ''}>completed</option>
-                        </select>
-                    </div>
-                    <div>${o.menuName} x${o.quantity} = ${o.total} руб</div>
-                    <div style="font-size:12px;">${o.orderDate}</div>
-                </div>
-            `).join('');
-        }
-    }
-
-    async function loadDialogs() {
-        const res = await callApiAuth('getDialogs', []);
-        if (res.success) {
-            const studentsOnly = res.data.filter(d => d.userRole === 'student');
-            const container = document.getElementById('dialogsList');
-            container.innerHTML = studentsOnly.map(d => `
-                <div class="list-item flex" onclick="openChat('${d.userId}', '${d.userName}')">
-                    <div>
-                        <strong>${d.userName}</strong>
-                        <div style="font-size:12px;">${d.lastMessage?.substring(0, 50) || ''}</div>
-                    </div>
-                    ${d.unreadCount > 0 ? `<span class="badge">${d.unreadCount}</span>` : ''}
-                </div>
-            `).join('');
-        }
-    }
-
-    async function openStudentChat(studentId, studentName) {
-        currentChatUserId = studentId;
-        document.getElementById('chatWith').innerText = studentName;
-        document.getElementById('chatBox').classList.remove('hidden');
-        const res = await callApiAuth('getMessages', [studentId]);
-        if (res.success) {
-            const container = document.getElementById('chatMessages');
-            container.innerHTML = res.data.map(m => `
-                <div style="margin: 5px 0; text-align: ${m.fromId === studentId ? 'left' : 'right'}">
-                    <div style="display:inline-block; background:${m.fromId === studentId ? '#eee' : '#000'}; color:${m.fromId === studentId ? '#000' : '#fff'}; padding: 6px 10px; border:1px solid #aaa;">
-                        <strong>${m.fromName}:</strong> ${m.body}
-                        <div style="font-size:10px;">${m.date?.split('T')[0]}</div>
-                    </div>
-                </div>
-            `).join('');
-            await callApiAuth('markMessagesRead', [studentId]);
-        }
-    }
-
-    async function sendMessageToStudent() {
-        const body = document.getElementById('newMessageBody').value;
-        if (!body.trim()) { alert('Введите сообщение'); return; }
-        await callApiAuth('sendMessage', [currentChatUserId, 'Личное сообщение', body]);
-        document.getElementById('newMessageBody').value = '';
-        await openStudentChat(currentChatUserId, document.getElementById('chatWith').innerText);
-        await loadDialogs();
-    }
-
-    async function loadLessonsByDate() {
-        const date = document.getElementById('lessonDate').value || new Date().toISOString().split('T')[0];
-        const res = await callApiAuth('getLessonsByDate', [currentClassId, date]);
-        if (res.success) {
-            const container = document.getElementById('lessonsList');
-            container.innerHTML = res.data.map(l => `
-                <div class="list-item">
-                    <div class="flex">
-                        <span><strong>${l.lessonNumber}</strong> ${l.subjectName}</span>
-                        <button class="btn-small" onclick="editLessonItem('${l.scheduleId}', '${date}', '${l.topic}', '${l.homework}')">✏️</button>
-                    </div>
-                    <div>📖 Тема: ${l.topic || '-'}</div>
-                    <div>📝 Д/З: ${l.homework || '-'}</div>
-                </div>
-            `).join('');
-        }
-    }
-
-    // CRUD операции
-    async function deleteScheduleItem(id) {
-        if (!confirm('Удалить урок?')) return;
-        await callApiAuth('deleteSchedule', [id]);
-        await loadSchedule();
-    }
-
-    async function deleteBreakItem(id) {
-        await callApiAuth('deleteBreak', [id]);
-        await loadBreaks();
-    }
-
-    async function editBreakItem(id, duration, name) {
-        const newDuration = prompt('Длительность (мин):', duration);
-        const newName = prompt('Название:', name);
-        await callApiAuth('updateBreak', [id, newDuration, newName]);
-        await loadBreaks();
-    }
-
-    async function editGradeItem(id, grade, comment) {
-        const newGrade = prompt('Оценка (1-5):', grade);
-        const newComment = prompt('Комментарий:', comment);
-        await callApiAuth('updateGrade', [id, newGrade, newComment]);
-        await loadStudentGrades();
-    }
-
-    async function deleteGradeItem(id) {
-        if (!confirm('Удалить оценку?')) return;
-        await callApiAuth('deleteGrade', [id]);
-        await loadStudentGrades();
-    }
-
-    async function editLessonItem(scheduleId, date, topic, homework) {
-        const newTopic = prompt('Тема:', topic);
-        const newHomework = prompt('Домашнее задание:', homework);
-        await callApiAuth('setLesson', [scheduleId, date, newTopic, newHomework]);
-        await loadLessonsByDate();
-    }
-
-    async function addSchedule() {
-        const day = prompt('День (1-ПН,2-ВТ,3-СР,4-ЧТ,5-ПТ):');
-        const lessonNum = prompt('Номер урока:');
-        const subjectId = prompt('ID предмета (см. список предметов):');
-        const room = prompt('Кабинет:');
-        const start = prompt('Начало (08:30):');
-        const end = prompt('Конец (09:15):');
-        await callApiAuth('setSchedule', [currentClassId, day, lessonNum, subjectId, room, start, end]);
-        await loadSchedule();
-    }
-
-    async function copySchedule() {
-        const fromClass = prompt('ID класса-источника:');
-        if (fromClass) {
-            await callApiAuth('copyScheduleWeek', [fromClass, currentClassId, 0]);
-            await loadSchedule();
-        }
-    }
-
-    async function addBreak() {
-        const after = prompt('После какого урока:');
-        const duration = prompt('Длительность (мин):');
-        const name = prompt('Название:');
-        await callApiAuth('setBreak', [after, duration, name]);
-        await loadBreaks();
+            return res;
+        });
     }
 
     async function addDish() {
@@ -661,9 +776,15 @@
         const fat = document.getElementById('newDishFat').value;
         const carbs = document.getElementById('newDishCarbs').value;
         const date = document.getElementById('menuDate').value || new Date().toISOString().split('T')[0];
+        
         if (!name) { alert('Введите название'); return; }
-        await callApiAuth('addMenuItem', [name, price, desc, kkal, protein, fat, carbs, date]);
-        await loadMenu();
+        
+        await withLoading('Добавление блюда', async () => {
+            const res = await callApiAuth('addMenuItem', [name, price, desc, kkal, protein, fat, carbs, date]);
+            if (!res.success) throw new Error(res.error);
+            return res;
+        });
+        
         document.getElementById('newDishName').value = '';
         document.getElementById('newDishPrice').value = '';
         document.getElementById('newDishDesc').value = '';
@@ -671,90 +792,152 @@
         document.getElementById('newDishProtein').value = '';
         document.getElementById('newDishFat').value = '';
         document.getElementById('newDishCarbs').value = '';
+        await loadMenu();
     }
 
     async function editMenuItem(id) {
         const newPrice = prompt('Новая цена:');
-        if (newPrice) await callApiAuth('updateMenuItem', [id, { price: newPrice }]);
-        await loadMenu();
+        if (newPrice) {
+            await withLoading('Изменение блюда', async () => {
+                const res = await callApiAuth('updateMenuItem', [id, { price: newPrice }]);
+                if (!res.success) throw new Error(res.error);
+                return res;
+            });
+            await loadMenu();
+        }
     }
 
     async function deleteMenuItem(id) {
         if (!confirm('Удалить блюдо?')) return;
-        await callApiAuth('deleteMenuItem', [id]);
+        
+        await withLoading('Удаление блюда', async () => {
+            const res = await callApiAuth('deleteMenuItem', [id]);
+            if (!res.success) throw new Error(res.error);
+            return res;
+        });
         await loadMenu();
     }
 
-    async function updateOrderStatus(orderId, status) {
-        await callApiAuth('updateOrderStatus', [orderId, status]);
-        await loadOrders();
+    async function loadStudentOrders() {
+        await withLoading('Загрузка заказов', async () => {
+            const res = await callApiAuth('getOrders', []);
+            if (!res.success) throw new Error(res.error);
+            
+            const myOrders = res.data.filter(o => o.userId === STUDENT_ID);
+            const container = document.getElementById('ordersList');
+            
+            if (myOrders.length > 0) {
+                container.innerHTML = myOrders.map(order => `
+                    <div class="list-item">
+                        <div class="flex">
+                            <strong>${order.menuName}</strong>
+                            <span class="badge">${order.status}</span>
+                        </div>
+                        <div>Кол-во: ${order.quantity} | Сумма: ${order.total} руб</div>
+                        <div style="font-size:12px;">${order.orderDate}</div>
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = '<div class="info-text">Нет заказов</div>';
+            }
+            return res;
+        });
     }
 
-    // UI helpers
+    async function placeOrder() {
+        const menuItems = await callApiAuth('getMenuByDate', [new Date().toISOString().split('T')[0]]);
+        if (!menuItems.success || menuItems.data.length === 0) {
+            alert('Нет блюд в меню');
+            return;
+        }
+        
+        const itemList = menuItems.data.map((item, idx) => `${idx + 1}. ${item.name} - ${item.price} руб`).join('\n');
+        const choice = prompt(`Выберите блюдо:\n${itemList}\n\nВведите номер блюда:`);
+        
+        if (choice && !isNaN(choice) && parseInt(choice) > 0 && parseInt(choice) <= menuItems.data.length) {
+            const selected = menuItems.data[parseInt(choice) - 1];
+            const quantity = prompt('Количество:', '1');
+            
+            if (quantity && !isNaN(quantity) && parseInt(quantity) > 0) {
+                await withLoading('Оформление заказа', async () => {
+                    const res = await callApiAuth('placeOrder', [selected.id, parseInt(quantity), new Date().toISOString().split('T')[0]]);
+                    if (!res.success) throw new Error(res.error);
+                    return res;
+                });
+                await loadStudentOrders();
+            }
+        }
+    }
+
+    async function loadMessages() {
+        await withLoading('Загрузка сообщений', async () => {
+            const res = await callApiAuth('getMessages', [STUDENT_ID]);
+            if (!res.success) throw new Error(res.error);
+            
+            const container = document.getElementById('chatMessages');
+            container.innerHTML = res.data.map(m => `
+                <div style="margin: 8px 0; text-align: ${m.fromId === STUDENT_ID ? 'left' : 'right'}">
+                    <div style="display:inline-block; background:${m.fromId === STUDENT_ID ? '#eee' : '#000'}; color:${m.fromId === STUDENT_ID ? '#000' : '#fff'}; padding: 8px 12px; border:1px solid #aaa; max-width:80%; word-wrap:break-word;">
+                        <strong>${m.fromName}:</strong> ${m.body}
+                        <div style="font-size:10px; margin-top:4px;">${m.date?.slice(0, 16).replace('T', ' ')}</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            container.scrollTop = container.scrollHeight;
+            return res;
+        });
+    }
+
+    async function sendMessage() {
+        const body = document.getElementById('newMessageBody').value;
+        if (!body.trim()) { alert('Введите сообщение'); return; }
+        
+        await withLoading('Отправка сообщения', async () => {
+            const res = await callApiAuth('sendMessage', [STUDENT_ID, 'Сообщение от учителя', body]);
+            if (!res.success) throw new Error(res.error);
+            return res;
+        });
+        
+        document.getElementById('newMessageBody').value = '';
+        await loadMessages();
+    }
+
     function showTab(tab) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
         document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.remove('hidden');
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         event?.target?.classList.add('active');
-        
-        if (tab === 'students') { loadStudents(); }
-        if (tab === 'schedule') { loadSchedule(); loadBreaks(); loadLessonsByDate(); }
-        if (tab === 'grades') { loadStudents(); }
-        if (tab === 'canteen') { loadMenu(); loadOrders(); }
-        if (tab === 'messages') { loadDialogs(); }
-    }
-
-    async function changeClass() {
-        currentClassId = document.getElementById('classSelect').value;
-        await loadStudents();
-    }
-
-    async function changeScheduleClass() {
-        currentClassId = document.getElementById('scheduleClassSelect').value;
-        await loadSchedule();
-        await loadLessonsByDate();
-    }
-
-    async function changeGradesClass() {
-        currentClassId = document.getElementById('gradesClassSelect').value;
-        await loadStudents();
-        const studentSelect = document.getElementById('studentSelect');
-        studentSelect.innerHTML = '<option value="">-- Выберите ученика --</option>' + allStudents.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-        currentStudentId = null;
-        document.getElementById('gradesList').innerHTML = '';
     }
 
     // Event listeners
     document.getElementById('loginBtn').onclick = login;
     document.getElementById('logoutBtn').onclick = () => { token = null; location.reload(); };
-    document.getElementById('addScheduleBtn').onclick = addSchedule;
-    document.getElementById('copyScheduleBtn').onclick = copySchedule;
-    document.getElementById('addBreakBtn').onclick = addBreak;
     document.getElementById('setGradeBtn').onclick = setGrade;
+    document.getElementById('addSubjectBtn').onclick = addSubject;
+    document.getElementById('addScheduleBtn').onclick = addSchedule;
+    document.getElementById('addBreakBtn').onclick = addBreak;
     document.getElementById('addDishBtn').onclick = addDish;
-    document.getElementById('sendMessageBtn').onclick = sendMessageToStudent;
-    document.getElementById('closeChatBtn').onclick = () => document.getElementById('chatBox').classList.add('hidden');
+    document.getElementById('sendMessageBtn').onclick = sendMessage;
+    document.getElementById('placeOrderBtn')?.addEventListener('click', placeOrder);
     document.getElementById('lessonDate').value = new Date().toISOString().split('T')[0];
     document.getElementById('menuDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('newGradeDate').value = new Date().toISOString().split('T')[0];
     
     document.querySelectorAll('.tab').forEach(tab => {
         tab.onclick = () => showTab(tab.dataset.tab);
     });
 
-    window.openStudentChat = openStudentChat;
-    window.deleteScheduleItem = deleteScheduleItem;
-    window.deleteBreakItem = deleteBreakItem;
-    window.editBreakItem = editBreakItem;
+    window.editSubject = editSubject;
+    window.deleteSubjectItem = deleteSubjectItem;
     window.editGradeItem = editGradeItem;
     window.deleteGradeItem = deleteGradeItem;
+    window.deleteScheduleItem = deleteScheduleItem;
+    window.editBreakItem = editBreakItem;
+    window.deleteBreakItem = deleteBreakItem;
     window.editLessonItem = editLessonItem;
     window.editMenuItem = editMenuItem;
     window.deleteMenuItem = deleteMenuItem;
-    window.updateOrderStatus = updateOrderStatus;
-    window.changeClass = changeClass;
-    window.changeScheduleClass = changeScheduleClass;
-    window.changeGradesClass = changeGradesClass;
-    window.selectStudent = selectStudent;
 </script>
 </body>
 </html>
