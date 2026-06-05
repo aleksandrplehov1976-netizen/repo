@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Триггеры навигации</title>
+    <!-- Минимум стилей: только для базового выравнивания и читаемости, без украшений -->
+    <style>
+        /* Почти без стилей: только чтобы кнопки не слипались и был отступ от краёв */
+        body {
+            margin: 20px;
+            font-family: system-ui, 'Segoe UI', 'Roboto', sans-serif;
+            background: white;
+        }
+        /* Простой контейнер-колонка для вертикального расположения */
+        .nav-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-width: 260px;
+        }
+        /* Кнопки: стандартный браузерный вид, только чуть увеличенный отступ и курсор */
+        button {
+            font-size: 1.2rem;
+            padding: 10px 16px;
+            cursor: pointer;
+            background: #f0f0f0;
+            border: 1px solid #aaa;
+            border-radius: 4px;
+            text-align: center;
+            transition: none; /* без анимаций */
+        }
+        /* Обычный ховер — только для тактильного отклика, без излишеств */
+        button:hover {
+            background: #e5e5e5;
+            border-color: #888;
+        }
+        /* Минимальный фокус для доступности */
+        button:focus-visible {
+            outline: 2px solid #005fcc;
+        }
+        /* Убираем все декорации, кнопки выглядят просто как кнопки */
+        a {
+            text-decoration: none;
+        }
+        /* Доп. утилита: мелкий пояснительный текст, без стилей практически */
+        .note {
+            margin-top: 24px;
+            color: #3a3a3a;
+            font-size: 0.85rem;
+            background: #fafafa;
+            padding: 6px 12px;
+            border-left: 2px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Контейнер с кнопками максимально лаконично -->
+    <div class="nav-panel">
+        <!-- Кнопка "Триггер входа" ведёт на triggerdone.html -->
+        <a href="triggerdone.html">
+            <button type="button">🔓 Триггер входа</button>
+        </a>
+
+        <!-- Кнопка "Триггер настроек" ведёт на triggersettings.html -->
+        <a href="triggersettings.html">
+            <button type="button">⚙️ Триггер настроек</button>
+        </a>
+    </div>
+
+    <!-- Совсем лёгкое примечание, чтобы напомнить о целевых страницах (не обязательно, но информативно) -->
+    <div class="note">
+        📄 Навигация: «Триггер входа» → triggerdone.html<br>
+        ⚙️ «Триггер настроек» → triggersettings.html
+    </div>
+
+    <!-- Абсолютно никакого JavaScript, только чистая HTML/CSS навигация.
+         Кнопки обёрнуты в <a>, чтобы переход работал без js даже при отключённом скрипте.
+         При клике по области кнопки произойдёт переход на соответствующую HTML-страницу.
+         Если файлы triggerdone.html / triggersettings.html находятся в той же папке,
+         что и этот документ, переход сработает мгновенно. -->
+</body>
+</html>
